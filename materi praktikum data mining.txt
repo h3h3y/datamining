@@ -164,3 +164,27 @@ rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=
 print(rules)
 
 ========================================================================
+import pandas as pd
+
+# Membuat DataFrame dari data dalam gambar
+data = {
+    "Id Produk": [1, 2, 3, 4, 5, None, None, 25],
+    "Harga Produk (ribu rupiah)": [450, 750, 800, 1000, None, None, None, 400],
+    "Terjual (unit)": [5, 2, 3, 2, 4, None, None, 6]
+}
+
+df = pd.DataFrame(data)
+
+# Memisahkan data lengkap dan data yang memiliki nilai kosong
+data_lengkap = df.dropna()  # Hapus baris dengan nilai kosong
+data_tidak_lengkap = df[df.isnull().any(axis=1)]  # Pilih baris yang memiliki nilai kosong
+
+# Menampilkan hasil
+print("Data Lengkap:")
+print(data_lengkap)
+print("\nData Tidak Lengkap:")
+print(data_tidak_lengkap)
+
+# Simpan hasil ke file CSV jika diperlukan
+data_lengkap.to_csv("data_lengkap.csv", index=False)
+data_tidak_lengkap.to_csv("data_tidak_lengkap.csv", index=False)
