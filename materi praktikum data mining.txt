@@ -1,0 +1,166 @@
+========================================================================
+Materi KNN (pertemuan 8)
+
+kode program
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn import metrics
+df=pd.read_csv('/content/drive/MyDrive/data mining/pertemuan3/gizi.csv')
+df.head()
+X=df[['Tinggi', 'Berat', 'L Perut', 'L Panggul', 'Lemak']]
+y=df['Label']
+print(y)
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+
+from sklearn.neighbors import KNeighborsClassifier
+model = KNeighborsClassifier(n_neighbors=3, weights='distance', metric='euclidean')
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+print(model.predict([[159, 49, 65, 87, 24.6]])) //data 159.49.65 dst itu berdasarkan permintaan dari soal 
+
+print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+
+========================================================================
+
+Materi Decision Tree CLASSIFICATION (pertemuan 9)
+
+kode program
+import pandas as pd
+iris = pd.read_csv('/content/drive/MyDrive/data mining/pertemuan3/Iris.csv')
+iris.info()
+iris.head()
+iris.drop('Id', axis=1, inplace=True) //id disini diambil dari field pada file csv yang tidak dibutuhkan
+
+X = iris[['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm' ]] //bagian ini yang nantinya dirubah menyesuaikan field pada file csv nya
+y = iris['Species']
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=123)
+
+from sklearn.tree import DecisionTreeClassifier
+tree_model = DecisionTreeClassifier()
+tree_model = tree_model.fit(X_train, y_train)
+
+from sklearn.metrics import accuracy_score
+y_pred = tree_model.predict(X_test)
+acc_score = round(accuracy_score(y_pred, y_test), 3)
+print('Accuracy:', acc_score)
+
+print(tree_model.predict([[6.2, 3.4, 5.4, 2.3]])[0]) //data yang dimasukkan
+
+from sklearn.tree import export_graphviz
+export_graphviz(
+    tree_model,
+    out_file = "iris_tree.dot",
+    feature_names= ['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm' ],
+    class_names = ['Iris-setosa', 'Iris-versicolor', 'iris-virginica'],
+    rounded = True,
+    filled = True) //jika ingin output grafik dalam bentuk file
+
+========================================================================
+
+Materi Perhitungan Python Naïve Bayes Classifier (pertemuan 10)
+
+kode program
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn import metrics
+df = pd.read_csv('/content/drive/MyDrive/data mining/pertemuan3/studi_num.csv')
+df
+X = df.iloc[:, :-1].values
+y = df.iloc[:, 5].values
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+
+from sklearn.naive_bayes import GaussianNB
+
+model = GaussianNB()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+y_pred
+
+np.array(y_test)
+print("accuracy:", metrics.accuracy_score(y_test, y_pred))
+
+========================================================================
+
+Materi Perhitungan Python K-Means (pertemuan 11)
+
+kode program
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import MinMaxScaler
+gizi = pd.read_excel("/content/drive/MyDrive/data mining/pertemuan3/dataset_gizi.xlsx")
+gizi.head()
+gizi.info()
+
+gizi_x=gizi.iloc[:, 2:4]
+gizi_x.head()
+
+plt.scatter(gizi.TB, gizi.BB, s=10, c="c", marker="o", alpha=1) //TB dan BB diambil dari isi field pada file csv nya
+plt.show()
+
+x_array = np.array(gizi_x)
+print(x_array)
+
+scaller=MinMaxScaler()
+x_scalled = scaller.fit_transform(x_array)
+x_scalled
+
+kmeans = KMeans(n_clusters = 5, random_state=123) //Keterangan kode : kmeans = KMeans(n_clusters = 5, random_state=123), n_cluster = 5 artinya akan membuat sebanyak 5 cluster. Random_state = 123 artinya pemilihan data testing tidak akan berubah setiap kali mengatur nilainya dengan 123
+
+kmeans.fit(x_scalled)
+
+print(kmeans.cluster_centers_)
+gizi["cluster"] = kmeans.labels_
+gizi.head()
+
+output = plt.scatter(x_scalled[:, 0], x_scalled[:, 1], s=100, c=gizi.cluster, marker="o", alpha=1,)
+centers = kmeans.cluster_centers_
+plt.scatter(centers[:, 0], centers[:, 1], c='red', s=200, alpha=1, marker='s');
+
+plt.title("hasil Clustering K-Means")
+plt.colorbar(output)
+plt.show()
+
+========================================================================
+
+Materi Perhitungan Python Apriory (pertemuan 12)
+
+kode program
+import pandas as pd
+import numpy as np
+from mlxtend.frequent_patterns import apriori, association_rules
+df = pd.read_csv('/content/drive/MyDrive/data mining/pertemuan3/GroceryStoreDataSet.csv', names=['products'], sep=',')
+df.head()
+df.shape
+data = list(df["products"].apply(lambda x:x.split(",")))
+data
+
+from mlxtend.preprocessing import TransactionEncoder
+a = TransactionEncoder()
+a_data = a.fit(data).transform(data)
+df = pd.DataFrame(a_data,columns=a.columns_)
+df = df.replace(False,0)
+df
+
+df = apriori(df, min_support=0.2, use_colnames=True, verbose=1)
+df
+
+frequent_itemsets = apriori(df, min_support=0.5, use_colnames=True)
+
+# Membuat association rules
+rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.6)
+
+print(rules)
+
+========================================================================
