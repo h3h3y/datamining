@@ -1,190 +1,174 @@
 ========================================================================
-Materi KNN (pertemuan 8)
+# file csv imunotherapi kedua nya sama saja isinya
 
-kode program
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn import metrics
-df=pd.read_csv('/content/drive/MyDrive/data mining/pertemuan3/gizi.csv')
-df.head()
-X=df[['Tinggi', 'Berat', 'L Perut', 'L Panggul', 'Lemak']]
-y=df['Label']
-print(y)
-
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
-
-from sklearn.neighbors import KNeighborsClassifier
-model = KNeighborsClassifier(n_neighbors=3, weights='distance', metric='euclidean')
-model.fit(X_train, y_train)
-
-y_pred = model.predict(X_test)
-print(model.predict([[159, 49, 65, 87, 24.6]])) //data 159.49.65 dst itu berdasarkan permintaan dari soal 
-
-print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-
-========================================================================
-
-Materi Decision Tree CLASSIFICATION (pertemuan 9)
-
-kode program
-import pandas as pd
-iris = pd.read_csv('/content/drive/MyDrive/data mining/pertemuan3/Iris.csv')
-iris.info()
-iris.head()
-iris.drop('Id', axis=1, inplace=True) //id disini diambil dari field pada file csv yang tidak dibutuhkan
-
-X = iris[['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm' ]] //bagian ini yang nantinya dirubah menyesuaikan field pada file csv nya
-y = iris['Species']
-
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=123)
-
-from sklearn.tree import DecisionTreeClassifier
-tree_model = DecisionTreeClassifier()
-tree_model = tree_model.fit(X_train, y_train)
-
-from sklearn.metrics import accuracy_score
-y_pred = tree_model.predict(X_test)
-acc_score = round(accuracy_score(y_pred, y_test), 3)
-print('Accuracy:', acc_score)
-
-print(tree_model.predict([[6.2, 3.4, 5.4, 2.3]])[0]) //data yang dimasukkan
-
-from sklearn.tree import export_graphviz
-export_graphviz(
-    tree_model,
-    out_file = "iris_tree.dot",
-    feature_names= ['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm' ],
-    class_names = ['Iris-setosa', 'Iris-versicolor', 'iris-virginica'],
-    rounded = True,
-    filled = True) //jika ingin output grafik dalam bentuk file
-
-========================================================================
-
-Materi Perhitungan Python Naïve Bayes Classifier (pertemuan 10)
-
-kode program
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn import metrics
-df = pd.read_csv('/content/drive/MyDrive/data mining/pertemuan3/studi_num.csv')
-df
-X = df.iloc[:, :-1].values
-y = df.iloc[:, 5].values
-
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
-
-from sklearn.naive_bayes import GaussianNB
-
-model = GaussianNB()
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-y_pred
-
-np.array(y_test)
-print("accuracy:", metrics.accuracy_score(y_test, y_pred))
-
-========================================================================
-
-Materi Perhitungan Python K-Means (pertemuan 11)
-
-kode program
-import pandas as pd
-import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import MinMaxScaler
-gizi = pd.read_excel("/content/drive/MyDrive/data mining/pertemuan3/dataset_gizi.xlsx")
-gizi.head()
-gizi.info()
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.tree import DecisionTreeClassifier, plot_tree
 
-gizi_x=gizi.iloc[:, 2:4]
-gizi_x.head()
+# 2. Upload dan baca data
+file_path = r'D:\data science\uas\imunotherapi.csv'  # Sesuaikan dengan lokasi file Anda
+df = pd.read_csv(file_path)
 
-plt.scatter(gizi.TB, gizi.BB, s=10, c="c", marker="o", alpha=1) //TB dan BB diambil dari isi field pada file csv nya
+# 3. Tampilkan deskripsi, struktur data, dan 5 data teratas
+print(df.info())
+print(df.describe())
+print(df.head())
+
+# 4. Lakukan pengecekan data
+print("\nJumlah nilai yang hilang:")
+print(df.isnull().sum())
+
+# Hapus data dengan nilai kosong pada target
+print("\nMenghapus baris dengan nilai kosong...")
+df_cleaned = df.dropna(subset=['Result_of_Treatment'])
+print(df_cleaned.isnull().sum())
+
+# 5. Analisis EDA dengan grafik
+plt.figure(figsize=(6, 4))
+sns.countplot(x='Result_of_Treatment', data=df_cleaned, palette='coolwarm')
+plt.title('Distribusi Hasil Pengobatan')
+plt.xlabel('Hasil Pengobatan (0: Tidak berhasil, 1: Berhasil)')
+plt.ylabel('Jumlah')
 plt.show()
 
-x_array = np.array(gizi_x)
-print(x_array)
-
-scaller=MinMaxScaler()
-x_scalled = scaller.fit_transform(x_array)
-x_scalled
-
-kmeans = KMeans(n_clusters = 5, random_state=123) //Keterangan kode : kmeans = KMeans(n_clusters = 5, random_state=123), n_cluster = 5 artinya akan membuat sebanyak 5 cluster. Random_state = 123 artinya pemilihan data testing tidak akan berubah setiap kali mengatur nilainya dengan 123
-
-kmeans.fit(x_scalled)
-
-print(kmeans.cluster_centers_)
-gizi["cluster"] = kmeans.labels_
-gizi.head()
-
-output = plt.scatter(x_scalled[:, 0], x_scalled[:, 1], s=100, c=gizi.cluster, marker="o", alpha=1,)
-centers = kmeans.cluster_centers_
-plt.scatter(centers[:, 0], centers[:, 1], c='red', s=200, alpha=1, marker='s');
-
-plt.title("hasil Clustering K-Means")
-plt.colorbar(output)
+# Visualisasi hubungan antara usia dan hasil pengobatan
+plt.figure(figsize=(8, 5))
+sns.boxplot(x='Result_of_Treatment', y='age', data=df_cleaned, palette='coolwarm')
+plt.title('Distribusi Usia berdasarkan Hasil Pengobatan')
+plt.xlabel('Hasil Pengobatan')
+plt.ylabel('Usia')
 plt.show()
 
+# 6. Analisis korelasi
+plt.figure(figsize=(10, 6))
+sns.heatmap(df_cleaned.corr(), annot=True, cmap='coolwarm', fmt=".2f")
+plt.title('Heatmap Korelasi Antar Variabel')
+plt.show()
+
+# 7. Model Naive Bayes
+X = df_cleaned.drop(columns=['Result_of_Treatment'])
+y = df_cleaned['Result_of_Treatment']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model_nb = GaussianNB()
+model_nb.fit(X_train, y_train)
+
+y_pred = model_nb.predict(X_test)
+
+# Evaluasi model
+print("\nAkurasi Model Naive Bayes:", accuracy_score(y_test, y_pred))
+print("\nLaporan Klasifikasi:")
+print(classification_report(y_test, y_pred))
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+# 8. Visualisasi model naive bayes
+plt.figure(figsize=(8, 5))
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, cmap='coolwarm', fmt='d')
+plt.title("Confusion Matrix Naive Bayes")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
+
+# 9. Tampilkan grafik dari naive bayes
+plt.figure(figsize=(8, 5))
+probabilities = model_nb.predict_proba(X_test)
+sns.histplot(probabilities[:, 1], bins=10, kde=True, color='blue')
+plt.title("Distribusi Probabilitas Prediksi Naive Bayes")
+plt.xlabel("Probabilitas Prediksi Kelas 1")
+plt.ylabel("Frekuensi")
+plt.show()
 ========================================================================
 
-Materi Perhitungan Python Apriory (pertemuan 12)
 
-kode program
+========================================================================
+# file csv diabetes yang ini
+
 import pandas as pd
 import numpy as np
-from mlxtend.frequent_patterns import apriori, association_rules
-df = pd.read_csv('/content/drive/MyDrive/data mining/pertemuan3/GroceryStoreDataSet.csv', names=['products'], sep=',')
-df.head()
-df.shape
-data = list(df["products"].apply(lambda x:x.split(",")))
-data
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.tree import DecisionTreeClassifier, plot_tree
 
-from mlxtend.preprocessing import TransactionEncoder
-a = TransactionEncoder()
-a_data = a.fit(data).transform(data)
-df = pd.DataFrame(a_data,columns=a.columns_)
-df = df.replace(False,0)
-df
+# 2. Upload dan baca data
+file_path = r'D:\data science\uas\diabetes.csv'  # Sesuaikan dengan lokasi file Anda
+df = pd.read_csv(file_path)
 
-df = apriori(df, min_support=0.2, use_colnames=True, verbose=1)
-df
+# 3. Tampilkan deskripsi, struktur data, dan 5 data teratas
+print(df.info())
+print(df.describe())
+print(df.head())
 
-frequent_itemsets = apriori(df, min_support=0.5, use_colnames=True)
+# 4. Lakukan pengecekan data
+print("\nJumlah nilai yang hilang:")
+print(df.isnull().sum())
 
-# Membuat association rules
-rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.6)
+# Hapus data dengan nilai kosong pada target
+print("\nMenghapus baris dengan nilai kosong...")
+df_cleaned = df.dropna(subset=['Outcome'])
+print(df_cleaned.isnull().sum())
 
-print(rules)
+# 5. Analisis EDA dengan grafik
+plt.figure(figsize=(6, 4))
+sns.countplot(x='Outcome', data=df_cleaned, palette='coolwarm')
+plt.title('Distribusi Hasil Diabetes')
+plt.xlabel('Hasil Diabetes (0: Tidak, 1: Ya)')
+plt.ylabel('Jumlah')
+plt.show()
 
+# Visualisasi hubungan antara usia dan hasil diabetes
+plt.figure(figsize=(8, 5))
+sns.boxplot(x='Outcome', y='Age', data=df_cleaned, palette='coolwarm')
+plt.title('Distribusi Usia berdasarkan Hasil Diabetes')
+plt.xlabel('Hasil Diabetes')
+plt.ylabel('Usia')
+plt.show()
+
+# 6. Analisis korelasi
+plt.figure(figsize=(10, 6))
+sns.heatmap(df_cleaned.corr(), annot=True, cmap='coolwarm', fmt=".2f")
+plt.title('Heatmap Korelasi Antar Variabel')
+plt.show()
+
+# 7. Model Naive Bayes
+X = df_cleaned.drop(columns=['Outcome'])
+y = df_cleaned['Outcome']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model_nb = GaussianNB()
+model_nb.fit(X_train, y_train)
+
+y_pred = model_nb.predict(X_test)
+
+# Evaluasi model
+print("\nAkurasi Model Naive Bayes:", accuracy_score(y_test, y_pred))
+print("\nLaporan Klasifikasi:")
+print(classification_report(y_test, y_pred))
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+# 8. Visualisasi model naive bayes
+plt.figure(figsize=(8, 5))
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, cmap='coolwarm', fmt='d')
+plt.title("Confusion Matrix Naive Bayes")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
+
+# 9. Tampilkan grafik dari naive bayes
+plt.figure(figsize=(8, 5))
+probabilities = model_nb.predict_proba(X_test)
+sns.histplot(probabilities[:, 1], bins=10, kde=True, color='blue')
+plt.title("Distribusi Probabilitas Prediksi Naive Bayes")
+plt.xlabel("Probabilitas Prediksi Kelas 1")
+plt.ylabel("Frekuensi")
+plt.show()
 ========================================================================
-import pandas as pd
-
-# Membuat DataFrame dari data dalam gambar
-data = {
-    "Id Produk": [1, 2, 3, 4, 5, None, None, 25],
-    "Harga Produk (ribu rupiah)": [450, 750, 800, 1000, None, None, None, 400],
-    "Terjual (unit)": [5, 2, 3, 2, 4, None, None, 6]
-}
-
-df = pd.DataFrame(data)
-
-# Memisahkan data lengkap dan data yang memiliki nilai kosong
-data_lengkap = df.dropna()  # Hapus baris dengan nilai kosong
-data_tidak_lengkap = df[df.isnull().any(axis=1)]  # Pilih baris yang memiliki nilai kosong
-
-# Menampilkan hasil
-print("Data Lengkap:")
-print(data_lengkap)
-print("\nData Tidak Lengkap:")
-print(data_tidak_lengkap)
-
-# Simpan hasil ke file CSV jika diperlukan
-data_lengkap.to_csv("data_lengkap.csv", index=False)
-data_tidak_lengkap.to_csv("data_tidak_lengkap.csv", index=False)
